@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  cpf          String   @unique
+  passwordHash String   @map("password_hash")
+  role         String   @default("USER") // USER | ADMIN
+  active       Boolean  @default(true) @map("active") // false = usuário inativo, não pode fazer login
+  supportOnly  Boolean  @default(false) @map("support_only") // true = apenas contato de apoio, sem contatos de emergência
+  cep          String?
+  street       String?
+  number       String?
+  complement   String?
+  neighborhood String?
+  city         String?
+  state        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  emergencyContacts   EmergencyContact[]  @relation("OwnerContacts")
+  panicEvents         PanicEvent[]
+  receivedPanicAlerts EmergencyContact[]   @relation("ContactUser")
+}
+
+model EmergencyContact {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  cpf             String
+  name            String
+  phone           String
+  email           String
+  contactUserId  String?   @map("contact_user_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user         User  @relation("OwnerContacts", fields: [userId], references: [id], onDelete: Cascade)
+  contactUser  User? @relation("ContactUser", fields: [contactUserId], references: [id], onDelete: SetNull)
+}
+
+model DeviceToken {
+  id         String   @id @default(uuid())
+  ownerType  String   @map("owner_type") // USER | CONTACT
+  ownerId    String   @map("owner_id")
+  platform   String   // android | ios | web
+  token      String
+  createdAt  DateTime @default(now()) @map("created_at")
+}
+
+model PanicEvent {
+  id                  String   @id @default(uuid())
+  userId              String   @map("user_id")
+  createdAt           DateTime @default(now()) @map("created_at")
+  status              String   @default("OPEN") // OPEN | CLOSED
+  latitude            Float
+  longitude           Float
+  accuracyM           Float    @map("accuracy_m")
+  capturedAt          DateTime @map("captured_at")
+  audioUrl            String?  @map("audio_url")
+  audioDurationS      Int      @default(30) @map("audio_duration_s")
+  addressStreet       String?  @map("address_street")
+  addressNeighborhood String?  @map("address_neighborhood")
+  addressCity         String?  @map("address_city")
+  addressState        String?  @map("address_state")
+
+  user               User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notificationLogs   PanicNotificationLog[]
+  readReceipts       PanicEventReadReceipt[]
+}
+
+model PanicEventReadReceipt {
+  id             String   @id @default(uuid())
+  panicEventId   String   @map("panic_event_id")
+  contactUserId  String   @map("contact_user_id")
+  readAt         DateTime @default(now()) @map("read_at")
+
+  panicEvent PanicEvent @relation(fields: [panicEventId], references: [id], onDelete: Cascade)
+
+  @@unique([panicEventId, contactUserId])
+}
+
+model PanicNotificationLog {
+  id           String   @id @default(uuid())
+  panicEventId String   @map("panic_event_id")
+  targetToken  String   @map("target_token")
+  success      Boolean
+  error        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  panicEvent PanicEvent @relation(fields: [panicEventId], references: [id], onDelete: Cascade)
+}

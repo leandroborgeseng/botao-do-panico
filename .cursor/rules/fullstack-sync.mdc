@@ -1,0 +1,24 @@
+---
+description: Ao mudar o app mobile, atualizar backend e painel web para dar suporte
+alwaysApply: true
+---
+
+# Sincronização Backend + Web com o App Mobile
+
+Sempre que o usuário pedir alterações no **aplicativo mobile** (app):
+
+1. **Backend (apps/backend)**  
+   - Atualizar ou criar endpoints, modelos (Prisma), validações e regras de negócio necessários para a funcionalidade do app.  
+   - Garantir que a API suporte os novos fluxos (ex.: novos campos, novos recursos, filtros).
+
+2. **Painel Web (apps/web)**  
+   - Atualizar o frontend Next.js para refletir as mesmas mudanças: novos campos, novas telas, listagens, formulários e ações que existem no app.  
+   - Admin deve poder ver/gerenciar os mesmos dados que o app usa; usuário deve ver/editar o que for coerente com o app.
+
+3. **Ordem de raciocínio**  
+   - Ao receber um pedido sobre "o app" ou "o aplicativo", pensar primeiro no que o **backend** precisa (API, banco, validações) e no que o **painel web** precisa (telas, listas, formulários, permissões) para dar suporte àquela funcionalidade no mobile.
+
+Exemplos:
+- Novo campo no cadastro do app → adicionar no modelo/API e no formulário de cadastro/edição do painel (admin e/ou usuário).
+- Nova tela ou recurso no app (ex.: "alertas recebidos") → endpoint no backend + página ou seção correspondente no painel web.
+- Nova regra (ex.: contato por CPF) → validação e lógica no backend + exibição/edição de CPF e contatos no painel web.

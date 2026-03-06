@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.next/
+.expo/
+*.db
+*.db-journal
+.env
+.env.local
+.env.*.local
+uploads/
+*.log
+.DS_Store
