@@ -240,3 +240,4 @@ Para produção: considere restringir CORS (`origin`) no backend, usar `BASE_URL
 - **Web:** variáveis CSS em `apps/web/app/globals.css` (`--color-primary`, `--color-text`, etc.).
 - **Mobile:** objeto `colors` em `apps/mobile/lib/theme.ts`.
 - O botão de **pânico** no app permanece vermelho (`#dc2626`) por convenção de emergência.
+# botao-do-panico
