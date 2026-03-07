@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+console.log('[START] Iniciando backend...');
 import { randomBytes } from 'crypto';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
@@ -10,6 +12,7 @@ import { requestIdMiddleware } from './common/request-id.middleware';
 import type { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
+  console.log('[START] Criando NestFactory...');
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // Headers de segurança padrão (API)
@@ -73,11 +76,23 @@ async function bootstrap() {
 
   const port = parseInt(process.env.PORT ?? '3001', 10);
   const host = process.env.HOST ?? '0.0.0.0';
+  console.log(`[START] Ouvindo em ${host}:${port} (PORT=${process.env.PORT})`);
   await app.listen(port, host);
-  console.log(`Backend running at http://${host}:${port}`);
+  console.log(`[OK] Backend running at http://${host}:${port}`);
 }
 
-bootstrap().catch((err) => {
-  console.error('Falha ao iniciar:', err);
+process.on('uncaughtException', (err) => {
+  console.error('[FATAL] uncaughtException:', err);
   process.exit(1);
 });
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[FATAL] unhandledRejection:', reason, promise);
+  process.exit(1);
+});
+
+bootstrap()
+  .then(() => console.log('[START] Bootstrap concluído.'))
+  .catch((err) => {
+    console.error('[FATAL] Falha ao iniciar:', err?.stack || err);
+    process.exit(1);
+  });
