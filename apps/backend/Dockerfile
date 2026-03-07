@@ -1,5 +1,5 @@
-# Build stage
-FROM node:22-alpine AS builder
+# Build stage - Debian para OpenSSL compatível com Prisma
+FROM node:22-bookworm-slim AS builder
 
 WORKDIR /app
 
@@ -18,9 +18,11 @@ COPY . .
 RUN npm run build
 
 # Production stage
-FROM node:22-alpine AS production
+FROM node:22-bookworm-slim AS production
 
 WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Copia package
 COPY package*.json ./
