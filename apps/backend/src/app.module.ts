@@ -7,6 +7,7 @@ import { ContactsModule } from './contacts/contacts.module';
 import { DeviceTokensModule } from './device-tokens/device-tokens.module';
 import { PanicEventsModule } from './panic-events/panic-events.module';
 import { UsersModule } from './users/users.module';
+import { AppController } from './app.controller';
 import { HealthController } from './health/health.controller';
 
 @Module({
@@ -31,6 +32,6 @@ import { HealthController } from './health/health.controller';
     PanicEventsModule,
     UsersModule,
   ],
-  controllers: [HealthController],
+  controllers: [AppController, HealthController],
 })
 export class AppModule {}

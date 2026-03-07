@@ -1,0 +1,8 @@
+# Variáveis para colar no Railway (serviço botao-do-panico → Variables)
+# Cole cada linha como "Nome" = "Valor" (sem as aspas no painel)
+# Substitua JWT_SECRET por uma chave forte (ex: openssl rand -base64 32)
+# Substitua CORS_ORIGINS pelas URLs do seu front (separadas por vírgula)
+
+DATABASE_URL=postgresql://postgres:SuaSenhaAqui@interchange.proxy.rlwy.net:50598/railway
+JWT_SECRET=substitua-por-uma-string-aleatoria-longa
+CORS_ORIGINS=https://seu-app.vercel.app
