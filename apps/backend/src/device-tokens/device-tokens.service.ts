@@ -43,7 +43,7 @@ export class DeviceTokensService {
       },
       select: { token: true },
     });
-    return [...new Set(tokens.map((t) => t.token))];
+    return [...new Set(tokens.map((t: { token: string }) => t.token))];
   }
 
   async getTokensForUserIds(userIds: string[]): Promise<string[]> {
@@ -55,6 +55,6 @@ export class DeviceTokensService {
       },
       select: { token: true },
     });
-    return [...new Set(tokens.map((t) => t.token))];
+    return [...new Set(tokens.map((t: { token: string }) => t.token))];
   }
 }

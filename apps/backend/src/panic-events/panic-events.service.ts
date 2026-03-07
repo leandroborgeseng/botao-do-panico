@@ -52,8 +52,10 @@ export class PanicEventsService {
     }
 
     const contacts = await this.contacts.getContactsByUserId(userId);
-    const contactIds = contacts.map((c) => c.id);
-    const contactUserIds = contacts.map((c) => c.contactUserId).filter((id): id is string => !!id);
+    const contactIds = contacts.map((c: { id: string }) => c.id);
+    const contactUserIds = contacts
+      .map((c: { contactUserId: string | null }) => c.contactUserId)
+      .filter((id: string | null): id is string => !!id);
     const tokensContact = await this.deviceTokens.getTokensForContactIds(contactIds);
     const tokensUser = await this.deviceTokens.getTokensForUserIds(contactUserIds);
     const tokens = [...new Set([...tokensContact, ...tokensUser])];
@@ -165,33 +167,46 @@ export class PanicEventsService {
       where: { userId: event.userId },
       select: { id: true, name: true, contactUserId: true },
     });
-    const successTokens = new Set(event.notificationLogs.map((l) => l.targetToken));
+    const successTokens = new Set(
+      event.notificationLogs.map((l: { targetToken: string }) => l.targetToken),
+    );
     const contactTokens = await this.prisma.deviceToken.findMany({
       where: {
         ownerType: 'USER',
-        ownerId: { in: contacts.map((c) => c.contactUserId).filter((id): id is string => !!id) },
+        ownerId: {
+          in: contacts
+            .map((c: { contactUserId: string | null }) => c.contactUserId)
+            .filter((id: string | null): id is string => !!id),
+        },
       },
       select: { ownerId: true, token: true },
     });
-    const readByContact = new Map(event.readReceipts.map((r) => [r.contactUserId, r.readAt]));
+    const readByContact = new Map(
+      event.readReceipts.map((r: { contactUserId: string; readAt: Date }) => [
+        r.contactUserId,
+        r.readAt,
+      ]),
+    );
     const tokensByContact = new Map<string, Set<string>>();
     for (const ct of contactTokens) {
       if (!ct.ownerId) continue;
       if (!tokensByContact.has(ct.ownerId)) tokensByContact.set(ct.ownerId, new Set());
       tokensByContact.get(ct.ownerId)!.add(ct.token);
     }
-    return contacts.map((c) => {
+    return contacts.map((c: { id: string; name: string; contactUserId: string | null }) => {
       const tokenSet = c.contactUserId ? tokensByContact.get(c.contactUserId) : null;
       const received =
         !!c.contactUserId &&
         (tokenSet ? [...tokenSet].some((t: string) => successTokens.has(t)) : false);
-      const readAt = c.contactUserId ? readByContact.get(c.contactUserId) ?? null : null;
+      const readAt: Date | undefined = c.contactUserId
+        ? readByContact.get(c.contactUserId)
+        : undefined;
       return {
         contactId: c.id,
         contactName: c.name,
         contactUserId: c.contactUserId,
         received,
-        readAt: readAt ? readAt.toISOString() : null,
+        readAt: readAt != null ? readAt.toISOString() : null,
       };
     });
   }

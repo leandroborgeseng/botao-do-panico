@@ -1,0 +1,8 @@
+# Garante que a pasta prisma seja incluída no output do deploy
+# (Nixpacks pode fazer copy minimal e excluir prisma em alguns setups)
+[phases.setup]
+nixPkgs = ["openssl"]
+
+# Garante que o output inclua prisma e migrations
+[variables]
+NODE_ENV = "production"

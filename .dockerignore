@@ -1,0 +1,11 @@
+# Não enviar para o build do backend
+**/node_modules
+**/dist
+.git
+.env
+.env.*
+*.log
+.next
+.expo
+apps/web
+apps/mobile

@@ -1,0 +1,9 @@
+# Deploy do backend: Root Directory = raiz do repo (vazio ou ".")
+# IMPORTANTE: Em Settings > Deploy, deixe "Custom Start Command" VAZIO para usar o CMD do Dockerfile
+[build]
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
