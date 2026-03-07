@@ -45,28 +45,36 @@ async function bootstrap() {
   );
 
   const isProduction = process.env.NODE_ENV === 'production';
-  const allowedOrigins = process.env.CORS_ORIGINS?.split(',').map((s) => s.trim()).filter(Boolean);
-  if (isProduction && (!allowedOrigins || allowedOrigins.length === 0)) {
-    console.error('Em produção defina CORS_ORIGINS (separado por vírgula).');
-    process.exit(1);
+  let allowedOrigins: string[] | true = true;
+  if (isProduction) {
+    const parsed = process.env.CORS_ORIGINS?.split(',').map((s) => s.trim()).filter(Boolean);
+    if (parsed && parsed.length > 0) {
+      allowedOrigins = parsed;
+    } else {
+      console.warn('[CORS] CORS_ORIGINS não definido em produção; usando * (defina no Railway).');
+      allowedOrigins = ['*'];
+    }
   }
   app.enableCors({
-    origin: isProduction ? allowedOrigins : true,
+    origin: allowedOrigins,
     credentials: true,
   });
 
   if (isProduction && (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'dev-secret-change-in-production')) {
-    console.error('Em produção defina JWT_SECRET e não use o valor de desenvolvimento.');
+    console.error('Em produção defina JWT_SECRET (Variables no Railway).');
     process.exit(1);
   }
 
   const uploadsPath = join(__dirname, '..', 'uploads');
   app.useStaticAssets(uploadsPath, { prefix: '/uploads' });
 
-  const port = process.env.PORT || 3001;
+  const port = parseInt(process.env.PORT ?? '3001', 10);
   const host = process.env.HOST ?? '0.0.0.0';
   await app.listen(port, host);
   console.log(`Backend running at http://${host}:${port}`);
 }
 
-bootstrap();
+bootstrap().catch((err) => {
+  console.error('Falha ao iniciar:', err);
+  process.exit(1);
+});

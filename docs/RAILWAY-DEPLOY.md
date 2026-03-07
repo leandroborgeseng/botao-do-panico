@@ -12,7 +12,7 @@ Para o deploy funcionar, use **uma** das opções abaixo.
 2. Em **Root Directory**, defina: **`apps/backend`**
 3. Em **Deploy** (ou **Start Command**), defina o comando de start:
    ```bash
-   npx prisma migrate deploy && npx nest start
+   npx prisma migrate deploy && node dist/main.js
    ```
    (Não use caminho `apps/backend/...` — o processo já roda dentro de `apps/backend`.)
 4. Em **Variables**, adicione **`DATABASE_URL`** como referência à variável do serviço **Postgres** (ou cole a connection string do Postgres).
