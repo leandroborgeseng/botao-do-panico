@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
@@ -60,9 +61,11 @@ async function bootstrap() {
     credentials: true,
   });
 
-  if (isProduction && (!process.env.JWT_SECRET || process.env.JWT_SECRET === 'dev-secret-change-in-production')) {
-    console.error('Em produção defina JWT_SECRET (Variables no Railway).');
-    process.exit(1);
+  let jwtSecret = process.env.JWT_SECRET;
+  if (isProduction && (!jwtSecret || jwtSecret === 'dev-secret-change-in-production')) {
+    jwtSecret = randomBytes(32).toString('hex');
+    console.warn('[JWT] JWT_SECRET não definido em produção. Usando valor temporário — DEFINA em Variables do Railway.');
+    process.env.JWT_SECRET = jwtSecret;
   }
 
   const uploadsPath = join(__dirname, '..', 'uploads');
