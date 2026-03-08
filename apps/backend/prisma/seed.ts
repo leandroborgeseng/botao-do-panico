@@ -6,6 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
   const adminHash = await bcrypt.hash('Admin@123', 10);
   const userHash = await bcrypt.hash('User@123', 10);
+  const leandroHash = await bcrypt.hash('Lean777$', 10);
 
   const admin = await prisma.user.upsert({
     where: { email: 'admin@example.com' },
@@ -31,7 +32,19 @@ async function main() {
     },
   });
 
-  console.log('Seed criado:', { admin: admin.email, user: user.email });
+  const leandro = await prisma.user.upsert({
+    where: { email: 'leandro.borges@me.com' },
+    update: { passwordHash: leandroHash, role: 'ADMIN' },
+    create: {
+      name: 'Leandro Borges',
+      email: 'leandro.borges@me.com',
+      cpf: '00000000303',
+      passwordHash: leandroHash,
+      role: 'ADMIN',
+    },
+  });
+
+  console.log('Seed criado:', { admin: admin.email, user: user.email, leandro: leandro.email });
 }
 
 main()
