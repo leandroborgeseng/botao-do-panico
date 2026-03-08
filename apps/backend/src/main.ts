@@ -57,7 +57,7 @@ async function bootstrap() {
     } else {
       // Com credentials: true o navegador não aceita *. Refletir a origem da requisição permite qualquer frontend.
       console.warn('[CORS] CORS_ORIGINS não definido; aceitando qualquer origem (recomendado: defina no Railway).');
-      corsOrigin = (origin: string, callback: (err: Error | null, allow?: boolean) => void) => callback(null, origin || true);
+      corsOrigin = (_origin: string, callback: (err: Error | null, allow?: boolean) => void) => callback(null, true);
     }
   }
   app.enableCors({
