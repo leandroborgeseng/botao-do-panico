@@ -1,7 +1,8 @@
 import { clearAuthCookie } from '@/lib/auth-cookie';
 
 // Padrão: API em produção (Railway). Para dev local use NEXT_PUBLIC_API_URL=http://localhost:3001 no .env.local
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://botao-do-panico-production.up.railway.app';
+// Remove barra final para evitar URLs com // (ex.: base/ + /auth/login)
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://botao-do-panico-production.up.railway.app').replace(/\/$/, '');
 const DEFAULT_TIMEOUT_MS = 15000;
 
 const LOG_PREFIX = '[API]';
