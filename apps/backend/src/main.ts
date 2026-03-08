@@ -49,18 +49,19 @@ async function bootstrap() {
   );
 
   const isProduction = process.env.NODE_ENV === 'production';
-  let allowedOrigins: string[] | true = true;
+  let corsOrigin: string[] | true | ((origin: string, callback: (err: Error | null, allow?: boolean) => void) => void) = true;
   if (isProduction) {
     const parsed = process.env.CORS_ORIGINS?.split(',').map((s) => s.trim()).filter(Boolean);
     if (parsed && parsed.length > 0) {
-      allowedOrigins = parsed;
+      corsOrigin = parsed;
     } else {
-      console.warn('[CORS] CORS_ORIGINS não definido em produção; usando * (defina no Railway).');
-      allowedOrigins = ['*'];
+      // Com credentials: true o navegador não aceita *. Refletir a origem da requisição permite qualquer frontend.
+      console.warn('[CORS] CORS_ORIGINS não definido; aceitando qualquer origem (recomendado: defina no Railway).');
+      corsOrigin = (origin: string, callback: (err: Error | null, allow?: boolean) => void) => callback(null, origin || true);
     }
   }
   app.enableCors({
-    origin: allowedOrigins,
+    origin: corsOrigin,
     credentials: true,
   });
 

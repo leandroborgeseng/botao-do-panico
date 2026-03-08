@@ -3,7 +3,8 @@
 
 DATABASE_URL=<referência ao Postgres ou postgresql://user:senha@host:porta/railway>
 JWT_SECRET=<gere com: openssl rand -base64 32>
-CORS_ORIGINS=*
+# Obrigatório: URL do frontend (com credentials o backend não pode usar *). Múltiplas origens separadas por vírgula.
+CORS_ORIGINS=https://botao-do-panico-production-b78c.up.railway.app
 
 # Variáveis para o FRONTEND (Root Directory = apps/web)
 # Serviço web → Variables (obrigatório para o front chamar o backend)

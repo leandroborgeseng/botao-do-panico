@@ -61,11 +61,8 @@ export async function api<T>(
       throw new Error('A requisição demorou demais. Tente novamente.');
     }
     if (/failed to fetch|networkerror|network error|load failed/i.test(msg)) {
-      const envBruto = process.env.NEXT_PUBLIC_API_URL;
-      const variavelSetada = envBruto !== undefined && envBruto !== '' ? 'sim' : 'não';
-      const valorVariavel = envBruto !== undefined && envBruto !== '' ? envBruto : '(vazia ou não definida no build)';
       throw new Error(
-        `Não foi possível conectar ao servidor. NEXT_PUBLIC_API_URL setada no build: ${variavelSetada}. Conteúdo da variável: "${valorVariavel}". URL usada nas requisições: ${API_URL}`
+        `Não foi possível conectar ao servidor. URL: ${API_URL}. Verifique: (1) Backend está rodando? Abra ${API_URL} no navegador. (2) No Railway → Backend → Variables, defina CORS_ORIGINS com a URL do frontend (ex: https://botao-do-panico-production-b78c.up.railway.app) ou deixe vazio para aceitar qualquer origem.`
       );
     }
     throw e;
