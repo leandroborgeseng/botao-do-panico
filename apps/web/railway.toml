@@ -1,9 +1,9 @@
 # Deploy do frontend (web): Root Directory = apps/web
 # Variáveis obrigatórias: NEXT_PUBLIC_API_URL (URL do backend no Railway)
-
+# dockerfilePath relativo à raiz do repo para garantir uso do Dockerfile do frontend
 [build]
 builder = "dockerfile"
-dockerfilePath = "Dockerfile"
+dockerfilePath = "apps/web/Dockerfile"
 
 [deploy]
 restartPolicyType = "ON_FAILURE"
