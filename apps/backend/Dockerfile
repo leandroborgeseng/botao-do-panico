@@ -42,4 +42,4 @@ COPY --from=builder /app/dist ./dist
 ENV NODE_ENV=production
 
 # Tudo no Docker: migrations + app
-CMD ["sh", "-c", "npx prisma migrate deploy && exec node dist/main.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && exec node dist/src/main.js"]
