@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 console.log('[START] Iniciando backend...');
+import { randomBytes } from 'crypto';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
@@ -13,10 +14,15 @@ import type { Request, Response, NextFunction } from 'express';
 async function bootstrap() {
   const isProduction = process.env.NODE_ENV === 'production';
   if (isProduction) {
-    const secret = process.env.JWT_SECRET;
-    if (!secret || secret === 'dev-secret-change-in-production') {
-      console.error('[FATAL] Em produção JWT_SECRET é obrigatório. Defina a variável no Railway (ex: openssl rand -base64 32).');
-      process.exit(1);
+    const raw = process.env.JWT_SECRET;
+    const secret = typeof raw === 'string' ? raw.trim() : '';
+    const definido = secret.length > 0 && secret !== 'dev-secret-change-in-production';
+    console.log('[JWT] JWT_SECRET da env:', definido ? `definido (${secret.length} caracteres)` : 'ausente ou inválido');
+    if (definido) {
+      process.env.JWT_SECRET = secret;
+    } else {
+      process.env.JWT_SECRET = randomBytes(32).toString('hex');
+      console.warn('[JWT] ATENÇÃO: Usando valor temporário. Defina JWT_SECRET em Railway → Backend → Variables. Se já definiu, confira o nome exato (JWT_SECRET) e se a variável está no serviço Backend (não no FrontEnd).');
     }
   }
 
