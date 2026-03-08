@@ -7,7 +7,6 @@ export class AppController {
     return {
       name: 'Botão do Pânico API',
       health: '/health',
-      docs: '/api',
     };
   }
 }

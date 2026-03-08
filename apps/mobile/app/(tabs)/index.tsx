@@ -36,13 +36,20 @@ export default function PanicScreen() {
   const recordingRef = useRef<Audio.Recording | null>(null);
   const uriRef = useRef<string | null>(null);
   const statusPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const submittingRef = useRef(false);
   const [disguiseMode, setDisguiseMode] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       getDisguiseMode().then(setDisguiseMode).catch(() => {});
       const unsub = subscribeDisguiseMode(setDisguiseMode);
-      return () => unsub();
+      return () => {
+        unsub();
+        if (statusPollRef.current) {
+          clearInterval(statusPollRef.current);
+          statusPollRef.current = null;
+        }
+      };
     }, []),
   );
 
@@ -77,6 +84,7 @@ export default function PanicScreen() {
   }, [phase, lastEventId]);
 
   const cancelConfirm = useCallback(() => {
+    submittingRef.current = false;
     if (countdownRef.current) clearInterval(countdownRef.current);
     countdownRef.current = null;
     setPhase('idle');
@@ -84,6 +92,8 @@ export default function PanicScreen() {
   }, []);
 
   const startCountdown = useCallback(() => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setPhase('confirm');
     setCountdown(COUNTDOWN_SECONDS);
     let left = COUNTDOWN_SECONDS;
@@ -105,6 +115,7 @@ export default function PanicScreen() {
     try {
       const locOk = await requestLocationPermission();
       if (!locOk) {
+        submittingRef.current = false;
         Alert.alert(
           'Permissão necessária',
           'Precisamos da localização para enviar em caso de emergência.',
@@ -118,6 +129,7 @@ export default function PanicScreen() {
 
       const micOk = await requestMicrophonePermission();
       if (!micOk) {
+        submittingRef.current = false;
         Alert.alert(
           'Permissão necessária',
           'Precisamos do microfone para gravar áudio.',
@@ -206,8 +218,14 @@ export default function PanicScreen() {
         setStatusLoading(false);
       }
     } catch (err: unknown) {
+      submittingRef.current = false;
       setPhase('idle');
-      Alert.alert('Erro', err instanceof Error ? err.message : 'Falha ao enviar evento.');
+      const msg = err instanceof Error ? err.message : 'Falha ao enviar evento.';
+      const isNetwork = /rede|conexão|fetch|network|failed|timeout|internet/i.test(msg);
+      Alert.alert(
+        'Erro',
+        isNetwork ? 'Sem conexão. Verifique sua internet e tente novamente.' : msg,
+      );
     }
   }
 
@@ -228,6 +246,7 @@ export default function PanicScreen() {
   }
 
   function closeStatus() {
+    submittingRef.current = false;
     setPhase('idle');
     setLastEventId(null);
     setLastEvent(null);

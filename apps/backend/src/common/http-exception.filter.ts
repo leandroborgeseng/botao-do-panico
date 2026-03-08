@@ -51,10 +51,17 @@ export class AllExceptionsFilter implements ExceptionFilter {
       this.logger.error(exception.message, exception.stack);
     }
 
+    const safeMessage =
+      typeof message === 'string'
+        ? message
+        : Array.isArray(message)
+          ? (message[0] ?? 'Erro na requisição')
+          : 'Erro na requisição';
+
     res.status(status).json({
       success: false,
       statusCode: status,
-      message: typeof message === 'string' ? message : 'Erro na requisição',
+      message: safeMessage,
     });
   }
 }

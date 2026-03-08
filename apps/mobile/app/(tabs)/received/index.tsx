@@ -20,7 +20,11 @@ export default function ReceivedListScreen() {
     panicEvents
       .received()
       .then(setList)
-      .catch((e) => setError(e.message))
+      .catch((e) => {
+        const msg = e?.message ?? String(e);
+        const isNetwork = /rede|conexão|fetch|network|failed|timeout|internet/i.test(msg);
+        setError(isNetwork ? 'Sem conexão. Verifique sua internet e tente novamente.' : msg);
+      })
       .finally(() => {
         setLoading(false);
         setRefreshing(false);
