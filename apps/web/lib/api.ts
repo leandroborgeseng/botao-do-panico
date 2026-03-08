@@ -59,11 +59,8 @@ export async function api<T>(
       throw new Error('A requisição demorou demais. Tente novamente.');
     }
     if (/failed to fetch|networkerror|network error|load failed/i.test(msg)) {
-      const envValue = typeof process.env.NEXT_PUBLIC_API_URL !== 'undefined'
-        ? process.env.NEXT_PUBLIC_API_URL
-        : '(não definida, usando fallback)';
       throw new Error(
-        `Não foi possível conectar ao servidor. NEXT_PUBLIC_API_URL (valor usado): ${API_URL} [env bruto: ${envValue}]. Use a URL pública do backend (ex: https://seu-backend.up.railway.app) sem porta 3001. Verifique CORS no backend.`
+        `Não foi possível conectar ao servidor. Verifique se o backend está rodando e se a URL da API está correta (NEXT_PUBLIC_API_URL). Valor usado: ${API_URL}`
       );
     }
     throw e;
