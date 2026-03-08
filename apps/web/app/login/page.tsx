@@ -89,11 +89,9 @@ function LoginForm() {
               }}
             >
               {error}
-              {apiUrl && (
-                <div style={{ marginTop: 8, fontSize: 11, wordBreak: 'break-all', opacity: 0.9 }}>
-                  API: {apiUrl}
-                </div>
-              )}
+              <div style={{ marginTop: 8, fontSize: 11, wordBreak: 'break-all', opacity: 0.9 }}>
+                NEXT_PUBLIC_API_URL: {apiUrl || '(vazio)'}
+              </div>
             </div>
           )}
           <label style={{ display: 'block', marginBottom: 16 }}>
