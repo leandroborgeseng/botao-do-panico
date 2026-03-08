@@ -1,0 +1,23 @@
+# =============================================================================
+# VARIÁVEIS DO BACKEND — Railway (Variables → New Variable)
+# Copie cada bloco: Nome = primeira linha, Valor = segunda linha
+# =============================================================================
+
+# -------- Variável 1: DATABASE_URL --------
+# Nome:
+DATABASE_URL
+# Valor: no Railway use "Add variable reference" → Postgres → DATABASE_URL
+# OU cole a URL do Postgres (exemplo — confira host/porta no painel):
+postgresql://postgres:SapCTbsNGvWFejegVxSYNnFexQzCIdAd@interchange.proxy.rlwy.net:50598/railway
+
+# -------- Variável 2: JWT_SECRET --------
+# Nome:
+JWT_SECRET
+# Valor: gere no terminal com: openssl rand -base64 32
+sua-string-aleatoria-longa-minimo-32-chars
+
+# -------- Variável 3: CORS_ORIGINS --------
+# Nome:
+CORS_ORIGINS
+# Valor:
+*

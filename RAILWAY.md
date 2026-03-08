@@ -2,15 +2,19 @@
 
 Guia para fazer backend, banco e frontend funcionarem no [Railway](https://railway.com).
 
+**Recriar o backend do zero (Docker + Postgres):** use o guia [docs/RAILWAY-BACKEND-DO-ZERO.md](docs/RAILWAY-BACKEND-DO-ZERO.md).
+
 ---
 
 ## Visão geral
 
-| Serviço | Root Directory | URL exemplo |
-|---------|----------------|-------------|
+Backend e frontend usam **Docker** (Dockerfile) no Railway — não Nixpacks. Em cada serviço, **Root Directory** define a pasta e o Dockerfile correspondente é usado.
+
+| Serviço | Root Directory | Builder |
+|---------|----------------|---------|
 | **Postgres** | (template) | — |
-| **Backend (API)** | `apps/backend` | `https://xxx-production.up.railway.app` |
-| **Frontend (Web)** | `apps/web` | `https://yyy-production.up.railway.app` |
+| **Backend (API)** | `apps/backend` | Dockerfile |
+| **Frontend (Web)** | `apps/web` | Dockerfile |
 
 ---
 

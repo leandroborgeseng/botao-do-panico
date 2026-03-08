@@ -41,5 +41,5 @@ COPY --from=builder /app/dist ./dist
 
 ENV NODE_ENV=production
 
-# Migrations rodam no start (DATABASE_URL vem do Railway)
-CMD ["sh", "-c", "npx prisma migrate deploy && echo '[CMD] Migrations OK, iniciando Node...' && exec node dist/main.js"]
+# Tudo no Docker: migrations + app
+CMD ["sh", "-c", "npx prisma migrate deploy && exec node dist/main.js"]
