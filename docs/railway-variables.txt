@@ -6,6 +6,6 @@ JWT_SECRET=<gere com: openssl rand -base64 32>
 CORS_ORIGINS=*
 
 # Variáveis para o FRONTEND (Root Directory = apps/web)
-# Serviço web → Variables
+# Serviço web → Variables (obrigatório para o front chamar o backend)
 
 NEXT_PUBLIC_API_URL=https://botao-do-panico-production.up.railway.app

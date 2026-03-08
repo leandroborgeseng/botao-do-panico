@@ -131,6 +131,11 @@ function LoginForm() {
           >
             {loading ? 'Entrando...' : 'Entrar'}
           </button>
+          <p style={{ marginTop: 24, fontSize: 12, color: 'var(--color-gray)', textAlign: 'center' }}>
+            <a href="/politica-de-uso" style={{ color: 'var(--color-link)' }}>Política de uso</a>
+            {' · '}
+            <a href="/descadastramento" style={{ color: 'var(--color-link)' }}>Solicitar descadastramento</a>
+          </p>
         </form>
       </div>
     </div>
