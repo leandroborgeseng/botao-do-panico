@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 console.log('[START] Iniciando backend...');
-import { randomBytes } from 'crypto';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
@@ -12,6 +11,15 @@ import { requestIdMiddleware } from './common/request-id.middleware';
 import type { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
+  const isProduction = process.env.NODE_ENV === 'production';
+  if (isProduction) {
+    const secret = process.env.JWT_SECRET;
+    if (!secret || secret === 'dev-secret-change-in-production') {
+      console.error('[FATAL] Em produção JWT_SECRET é obrigatório. Defina a variável no Railway (ex: openssl rand -base64 32).');
+      process.exit(1);
+    }
+  }
+
   console.log('[START] Criando NestFactory...');
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
@@ -48,7 +56,6 @@ async function bootstrap() {
     }),
   );
 
-  const isProduction = process.env.NODE_ENV === 'production';
   let corsOrigin: string[] | true | ((origin: string, callback: (err: Error | null, allow?: boolean) => void) => void) = true;
   if (isProduction) {
     const parsed = process.env.CORS_ORIGINS?.split(',').map((s) => s.trim()).filter(Boolean);
@@ -64,13 +71,6 @@ async function bootstrap() {
     origin: corsOrigin,
     credentials: true,
   });
-
-  let jwtSecret = process.env.JWT_SECRET;
-  if (isProduction && (!jwtSecret || jwtSecret === 'dev-secret-change-in-production')) {
-    jwtSecret = randomBytes(32).toString('hex');
-    console.warn('[JWT] JWT_SECRET não definido em produção. Usando valor temporário — DEFINA em Variables do Railway.');
-    process.env.JWT_SECRET = jwtSecret;
-  }
 
   const uploadsPath = join(__dirname, '..', 'uploads');
   app.useStaticAssets(uploadsPath, { prefix: '/uploads' });

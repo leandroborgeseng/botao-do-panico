@@ -19,10 +19,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Erro interno';
 
-    // Prisma: evita 500 desnecessário e não vaza detalhes internos
-    const prismaCode = (exception as { code?: unknown } | null)?.code;
-    if (typeof prismaCode === 'string') {
-      switch (prismaCode) {
+    // Multer: tamanho do arquivo excedido (ex.: áudio > 10 MB)
+    const errCode = (exception as { code?: string } | null)?.code;
+    if (errCode === 'LIMIT_FILE_SIZE') {
+      status = HttpStatus.PAYLOAD_TOO_LARGE;
+      message = 'Arquivo de áudio muito grande. O tamanho máximo é 10 MB.';
+    } else if (typeof errCode === 'string') {
+      // Prisma: evita 500 desnecessário e não vaza detalhes internos
+      switch (errCode) {
         case 'P2002': {
           status = HttpStatus.CONFLICT;
           message = 'Já existe um registro com esse valor.';
@@ -38,8 +42,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
           message = 'Erro de banco de dados.';
         }
       }
-    } else
-    if (exception instanceof HttpException) {
+    } else if (exception instanceof HttpException) {
       status = exception.getStatus();
       const payload = exception.getResponse();
       message = typeof payload === 'string' ? payload : (payload as { message?: string | string[] })?.message as string ?? message;

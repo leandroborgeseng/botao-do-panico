@@ -26,7 +26,12 @@ export class PanicEventsController {
   @Post()
   @UseGuards(ThrottlerGuard)
   @Throttle({ short: { limit: 5, ttl: 60000 } })
-  @UseInterceptors(FileInterceptor('audio', { storage: memoryStorage() }))
+  @UseInterceptors(
+    FileInterceptor('audio', {
+      storage: memoryStorage(),
+      limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+    }),
+  )
   async create(
     @JwtUser('id') userId: string,
     @JwtUser('role') role: string,
