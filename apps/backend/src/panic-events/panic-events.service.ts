@@ -9,7 +9,26 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 
 const UPLOADS_DIR = 'uploads';
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3001';
+
+function getBaseUrl(): string {
+  if (process.env.BASE_URL) return process.env.BASE_URL.replace(/\/$/, '');
+  if (process.env.NODE_ENV === 'production') return 'https://botao-do-panico-production.up.railway.app';
+  return 'http://localhost:3001';
+}
+
+/** Corrige audioUrl que foi salvo com localhost (ex.: em produção deve usar a URL pública da API). */
+function normalizeAudioUrl(audioUrl: string | null): string | null {
+  if (!audioUrl) return null;
+  if (audioUrl.includes('localhost')) {
+    try {
+      const pathname = new URL(audioUrl).pathname;
+      return getBaseUrl() + pathname;
+    } catch {
+      return audioUrl;
+    }
+  }
+  return audioUrl;
+}
 
 @Injectable()
 export class PanicEventsService {
@@ -44,7 +63,7 @@ export class PanicEventsService {
       const filename = `${event.id}.m4a`;
       const filepath = join(dir, filename);
       await writeFile(filepath, audioBuffer);
-      audioUrl = `${BASE_URL}/uploads/${filename}`;
+      audioUrl = `${getBaseUrl()}/uploads/${filename}`;
       await this.prisma.panicEvent.update({
         where: { id: event.id },
         data: { audioUrl },
@@ -87,21 +106,25 @@ export class PanicEventsService {
       })
       .catch(() => {});
 
-    return this.prisma.panicEvent.findUnique({
+    const created = await this.prisma.panicEvent.findUnique({
       where: { id: event.id },
       include: { user: { select: { id: true, name: true, email: true } } },
     });
+    if (created && created.audioUrl) created.audioUrl = normalizeAudioUrl(created.audioUrl);
+    return created;
   }
 
   async findAll(userId: string, isAdmin: boolean) {
     const where = isAdmin ? {} : { userId };
-    return this.prisma.panicEvent.findMany({
+    const events = await this.prisma.panicEvent.findMany({
       where,
       orderBy: { createdAt: 'desc' },
       include: {
         user: { select: { id: true, name: true, email: true } },
       },
     });
+    events.forEach((e) => { if (e.audioUrl) e.audioUrl = normalizeAudioUrl(e.audioUrl); });
+    return events;
   }
 
   async findOne(id: string, userId: string, isAdmin: boolean) {
@@ -120,7 +143,7 @@ export class PanicEventsService {
     if (isContact) {
       await this.recordReadReceipt(id, userId);
     }
-    return this.prisma.panicEvent.findUnique({
+    const one = await this.prisma.panicEvent.findUnique({
       where: { id },
       include: {
         user: { select: { id: true, name: true, email: true } },
@@ -128,6 +151,8 @@ export class PanicEventsService {
         readReceipts: true,
       },
     });
+    if (one?.audioUrl) one.audioUrl = normalizeAudioUrl(one.audioUrl);
+    return one;
   }
 
   private async isContactOfEvent(panicEventId: string, contactUserId: string): Promise<boolean> {
@@ -222,7 +247,7 @@ export class PanicEventsService {
   }
 
   async findReceived(userId: string) {
-    return this.prisma.panicEvent.findMany({
+    const events = await this.prisma.panicEvent.findMany({
       where: {
         user: {
           emergencyContacts: {
@@ -235,6 +260,8 @@ export class PanicEventsService {
         user: { select: { id: true, name: true, email: true, cpf: true } },
       },
     });
+    events.forEach((e) => { if (e.audioUrl) e.audioUrl = normalizeAudioUrl(e.audioUrl); });
+    return events;
   }
 
   /** Preenche endereço (rua, bairro, cidade) em eventos que ainda não têm. Só admin. Respeita 1 req/s do Nominatim. */

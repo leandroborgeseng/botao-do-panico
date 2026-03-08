@@ -5,10 +5,10 @@ import { runUnauthorizedHandler } from '@/lib/unauthorized';
 
 const TOKEN_KEY = '@panico_token';
 
-// No celular use EXPO_PUBLIC_API_URL no .env com o IP da sua máquina (ex: http://192.168.1.10:3001)
+// Valor vem do app.config.js (extra.apiUrl). Padrão: produção. Para dev local use EXPO_PUBLIC_API_URL no .env
 const API_URL =
   (Constants.expoConfig?.extra?.apiUrl as string | undefined) ??
-  'http://localhost:3001';
+  'https://botao-do-panico-production.up.railway.app';
 const DEFAULT_TIMEOUT_MS = 15000;
 
 function getToken(): string | null {

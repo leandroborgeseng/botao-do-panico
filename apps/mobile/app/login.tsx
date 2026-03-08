@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 import { auth, setToken, panicEvents } from '@/lib/api';
 import { setStoredToken, setStoredUser } from '@/lib/storage';
 import { registerPushTokenIfPossible } from '@/lib/push-notifications';
+import { ENABLE_REGISTRATION } from '@/lib/feature-flags';
 import { colors, spacing, radius, typography, cardStyle, inputStyle, primaryButtonStyle } from '@/lib/theme';
 
 export default function LoginScreen() {
@@ -138,9 +139,11 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.registerLink} onPress={() => router.push('/register')}>
-          <Text style={styles.registerLinkText}>Não tem conta? Cadastre-se</Text>
-        </TouchableOpacity>
+        {ENABLE_REGISTRATION ? (
+          <TouchableOpacity style={styles.registerLink} onPress={() => router.push('/register')}>
+            <Text style={styles.registerLinkText}>Não tem conta? Cadastre-se</Text>
+          </TouchableOpacity>
+        ) : null}
       </ScrollView>
     </KeyboardAvoidingView>
   );

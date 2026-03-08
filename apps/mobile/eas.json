@@ -13,7 +13,7 @@
     "preview": {
       "distribution": "internal",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://sua-api-preview.exemplo.com"
+        "EXPO_PUBLIC_API_URL": "https://botao-do-panico-production.up.railway.app"
       }
     },
     "production": {
@@ -22,7 +22,7 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://sua-api.exemplo.com"
+        "EXPO_PUBLIC_API_URL": "https://botao-do-panico-production.up.railway.app"
       }
     }
   },

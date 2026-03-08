@@ -1,5 +1,5 @@
-// Carrega .env para EXPO_PUBLIC_* (Expo já carrega; aqui garantimos extra.apiUrl no app)
-const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3001';
+// API em produção por padrão (Railway). Para dev local use EXPO_PUBLIC_API_URL no .env (ex: http://192.168.x.x:3001)
+const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'https://botao-do-panico-production.up.railway.app';
 const disguiseIcon = process.env.EXPO_PUBLIC_DISGUISE_ICON === '1';
 
 module.exports = {

@@ -20,6 +20,7 @@ import { auth, setToken } from '@/lib/api';
 import { setStoredToken, setStoredUser } from '@/lib/storage';
 import { registerPushTokenIfPossible } from '@/lib/push-notifications';
 import { fetchAddressByCep } from '@/lib/viacep';
+import { ENABLE_REGISTRATION } from '@/lib/feature-flags';
 import { colors, spacing, radius, typography, cardStyle, inputStyle, primaryButtonStyle } from '@/lib/theme';
 
 function stripDigits(value: string): string {
@@ -179,6 +180,20 @@ export default function RegisterScreen() {
     await setStoredUser(JSON.stringify(user));
     registerPushTokenIfPossible().catch(() => {});
     router.replace('/(tabs)');
+  }
+
+  if (!ENABLE_REGISTRATION) {
+    return (
+      <View style={styles.containerDisabled}>
+        <Text style={styles.titleDisabled}>Cadastro temporariamente indisponível</Text>
+        <Text style={styles.messageDisabled}>
+          O cadastro de novos usuários pelo app está em fase de testes. Entre em contato com o suporte para obter acesso.
+        </Text>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.replace('/login')}>
+          <Text style={styles.backButtonText}>Voltar ao login</Text>
+        </TouchableOpacity>
+      </View>
+    );
   }
 
   return (
@@ -402,6 +417,33 @@ export default function RegisterScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
+  containerDisabled: {
+    flex: 1,
+    backgroundColor: colors.background,
+    padding: spacing.lg,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  titleDisabled: {
+    ...typography.titleSmall,
+    color: colors.primary,
+    textAlign: 'center',
+    marginBottom: spacing.md,
+  },
+  messageDisabled: {
+    ...typography.body,
+    color: colors.gray,
+    textAlign: 'center',
+    marginBottom: spacing.xl,
+  },
+  backButton: {
+    ...primaryButtonStyle,
+    minWidth: 200,
+  },
+  backButtonText: {
+    ...typography.button,
+    color: colors.onPrimary,
+  },
   scroll: { flex: 1 },
   scrollContent: { padding: spacing.lg, paddingBottom: spacing.xl * 2 },
   logoContainer: {
