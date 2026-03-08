@@ -1,8 +1,6 @@
-/* eslint-disable no-console */
-console.log('[START] Iniciando backend...');
 import { randomBytes } from 'crypto';
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -11,22 +9,28 @@ import helmet from 'helmet';
 import { requestIdMiddleware } from './common/request-id.middleware';
 import type { Request, Response, NextFunction } from 'express';
 
+const logger = new Logger('Bootstrap');
+
 async function bootstrap() {
   const isProduction = process.env.NODE_ENV === 'production';
+  if (isProduction && !process.env.DATABASE_URL?.trim()) {
+    logger.error('DATABASE_URL é obrigatória em produção. Defina no Railway → Backend → Variables.');
+    process.exit(1);
+  }
   if (isProduction) {
     const raw = process.env.JWT_SECRET;
     const secret = typeof raw === 'string' ? raw.trim() : '';
     const definido = secret.length > 0 && secret !== 'dev-secret-change-in-production';
-    console.log('[JWT] JWT_SECRET da env:', definido ? `definido (${secret.length} caracteres)` : 'ausente ou inválido');
+    logger.log(definido ? `JWT_SECRET definido (${secret.length} caracteres)` : 'JWT_SECRET ausente ou inválido');
     if (definido) {
       process.env.JWT_SECRET = secret;
     } else {
       process.env.JWT_SECRET = randomBytes(32).toString('hex');
-      console.warn('[JWT] ATENÇÃO: Usando valor temporário. Defina JWT_SECRET em Railway → Backend → Variables. Se já definiu, confira o nome exato (JWT_SECRET) e se a variável está no serviço Backend (não no FrontEnd).');
+      logger.warn('Usando JWT_SECRET temporário. Defina em Railway → Backend → Variables.');
     }
   }
 
-  console.log('[START] Criando NestFactory...');
+  logger.log('Criando NestFactory...');
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // Headers de segurança padrão (API)
@@ -39,15 +43,13 @@ async function bootstrap() {
 
   app.use(requestIdMiddleware);
 
-  // Log simples de request (sem mudar lógica)
+  const httpLogger = new Logger('HTTP');
   app.use((req: Request, res: Response, next: NextFunction) => {
     const start = Date.now();
     res.on('finish', () => {
       const durationMs = Date.now() - start;
       const requestId = (req as unknown as { requestId?: string }).requestId ?? '-';
-      console.log(
-        `[${requestId}] ${req.method} ${req.originalUrl} -> ${res.statusCode} (${durationMs}ms)`,
-      );
+      httpLogger.log(`${requestId} ${req.method} ${req.originalUrl} ${res.statusCode} ${durationMs}ms`);
     });
     next();
   });
@@ -70,6 +72,7 @@ async function bootstrap() {
     } else {
       // Com credentials: true o navegador não aceita *. Refletir a origem da requisição permite qualquer frontend.
       console.warn('[CORS] CORS_ORIGINS não definido; aceitando qualquer origem (recomendado: defina no Railway).');
+      logger.warn('CORS_ORIGINS não definido; aceitando qualquer origem.');
       corsOrigin = (_origin: string, callback: (err: Error | null, allow?: boolean) => void) => callback(null, true);
     }
   }
@@ -83,23 +86,22 @@ async function bootstrap() {
 
   const port = parseInt(process.env.PORT ?? '3001', 10);
   const host = process.env.HOST ?? '0.0.0.0';
-  console.log(`[START] Ouvindo em ${host}:${port} (PORT=${process.env.PORT})`);
   await app.listen(port, host);
-  console.log(`[OK] Backend running at http://${host}:${port}`);
+  logger.log(`Backend rodando em http://${host}:${port}`);
 }
 
 process.on('uncaughtException', (err) => {
-  console.error('[FATAL] uncaughtException:', err);
+  logger.error('uncaughtException', err);
   process.exit(1);
 });
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('[FATAL] unhandledRejection:', reason, promise);
+  logger.error('unhandledRejection', reason, promise);
   process.exit(1);
 });
 
 bootstrap()
-  .then(() => console.log('[START] Bootstrap concluído.'))
+  .then(() => logger.log('Bootstrap concluído.'))
   .catch((err) => {
-    console.error('[FATAL] Falha ao iniciar:', err?.stack || err);
+    logger.error('Falha ao iniciar', err?.stack ?? err);
     process.exit(1);
   });

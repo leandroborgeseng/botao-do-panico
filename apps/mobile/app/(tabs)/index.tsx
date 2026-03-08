@@ -273,7 +273,13 @@ export default function PanicScreen() {
               <View style={styles.fakeChip}><Text style={styles.fakeChipText}>🍕 Mussarela</Text></View>
               <View style={styles.fakeChip}><Text style={styles.fakeChipText}>🥤 Refrigerante</Text></View>
             </View>
-            <TouchableOpacity style={styles.fakeButton} onPress={startCountdown} activeOpacity={0.85}>
+            <TouchableOpacity
+              style={styles.fakeButton}
+              onPress={startCountdown}
+              activeOpacity={0.85}
+              accessibilityLabel="Confirmar pedido (acionar pânico)"
+              accessibilityRole="button"
+            >
               <Ionicons name="cart" size={20} color={colors.onPrimary} style={{ marginRight: 8 }} />
               <Text style={styles.fakeButtonText}>Confirmar pedido</Text>
             </TouchableOpacity>
@@ -283,6 +289,8 @@ export default function PanicScreen() {
             style={styles.panicButton}
             onPress={startCountdown}
             activeOpacity={0.8}
+            accessibilityLabel="Acionar pânico"
+            accessibilityRole="button"
           >
             <Text style={styles.panicButtonText}>PÂNICO</Text>
           </TouchableOpacity>

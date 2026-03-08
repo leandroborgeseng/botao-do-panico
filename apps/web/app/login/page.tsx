@@ -2,8 +2,8 @@
 
 import { useState, Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { auth, getApiUrl } from '@/lib/api';
-import { setAuthCookie } from '@/lib/auth-cookie';
+import { auth, getApiUrl, panicEvents } from '@/lib/api';
+import { setAuthCookie, clearAuthCookie } from '@/lib/auth-cookie';
 
 function LoginForm() {
   const router = useRouter();
@@ -18,6 +18,24 @@ function LoginForm() {
     setApiUrl(getApiUrl());
     console.log('[Login] NEXT_PUBLIC_API_URL (base):', getApiUrl());
   }, []);
+
+  // Se há token mas sem cookie (ex.: middleware redirecionou), valida token e reidrata o cookie
+  useEffect(() => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!token) return;
+    panicEvents
+      .list()
+      .then(() => {
+        setAuthCookie();
+        const from = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('from') : null;
+        router.replace(from && from.startsWith('/dashboard') ? from : '/dashboard');
+      })
+      .catch(() => {
+        clearAuthCookie();
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      });
+  }, [router]);
 
   const fromRegistered = searchParams.get('registered') === '1';
 
@@ -138,6 +156,7 @@ function LoginForm() {
           <button
             type="submit"
             disabled={loading}
+            aria-label="Entrar no painel"
             style={{
               width: '100%',
               padding: 12,

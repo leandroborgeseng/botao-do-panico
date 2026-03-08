@@ -78,7 +78,7 @@ export default function RegisterPage() {
           Cadastro
         </h1>
         <p style={{ color: 'var(--color-gray)', marginBottom: 24, fontSize: 14 }}>
-          Crie sua conta no painel do Botão do Pânico
+          Crie sua conta no painel (nome, e-mail, CPF e senha). O cadastro completo com endereço e contatos de emergência está disponível no app mobile.
         </p>
         <form onSubmit={handleSubmit}>
           {error && (

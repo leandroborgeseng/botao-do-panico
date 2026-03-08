@@ -41,8 +41,23 @@ export default function EventsPage() {
     loadEvents();
   }, []);
 
-  if (loading) return <p style={{ color: 'var(--color-text)' }}>Carregando eventos...</p>;
-  if (error) return <p style={{ color: 'var(--color-error)' }}>{error}</p>;
+  if (loading) {
+    return (
+      <div style={{ padding: 32, color: 'var(--color-gray)', fontSize: 14 }}>
+        <p style={{ margin: 0 }}>Carregando eventos...</p>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div style={{ padding: 24 }}>
+        <p style={{ color: 'var(--color-error)', marginBottom: 12 }}>{error}</p>
+        <button type="button" onClick={loadEvents} style={{ padding: '8px 16px', background: 'var(--color-primary)', color: 'white', border: 'none', borderRadius: 8 }}>
+          Tentar novamente
+        </button>
+      </div>
+    );
+  }
 
   const all: EventWithSource[] = [
     ...mine.map((ev) => ({ ...ev, _source: 'mine' as const })),
@@ -114,8 +129,8 @@ export default function EventsPage() {
           <tbody>
             {all.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ padding: 24, color: 'var(--color-gray)' }}>
-                  Nenhum evento registrado.
+                <td colSpan={6} style={{ padding: 32, color: 'var(--color-gray)', fontSize: 14, textAlign: 'center' }}>
+                  Nenhum evento. Você ainda não acionou o pânico e não recebeu alertas como contato.
                 </td>
               </tr>
             ) : (
