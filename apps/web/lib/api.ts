@@ -3,15 +3,26 @@ import { clearAuthCookie } from '@/lib/auth-cookie';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 const DEFAULT_TIMEOUT_MS = 15000;
 
+const LOG_PREFIX = '[API]';
+
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
   return localStorage.getItem('token');
+}
+
+export function getApiUrl(): string {
+  return API_URL;
 }
 
 export async function api<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
+  const url = `${API_URL}${path}`;
+  if (typeof window !== 'undefined') {
+    console.log(`${LOG_PREFIX} ${(options.method || 'GET')} ${url}`);
+  }
+
   const token = getToken();
   const headers: HeadersInit = {
     ...(options.headers as Record<string, string>),
@@ -31,20 +42,37 @@ export async function api<T>(
       : DEFAULT_TIMEOUT_MS;
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    res = await fetch(`${API_URL}${path}`, { ...options, headers, signal: controller.signal });
+    res = await fetch(url, { ...options, headers, signal: controller.signal });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
+    const err = e as Error & { cause?: unknown };
+    const msg = err?.message ?? String(e);
+    if (typeof window !== 'undefined') {
+      console.error(`${LOG_PREFIX} fetch falhou:`, {
+        url,
+        method: options.method || 'GET',
+        errorName: err?.name,
+        errorMessage: msg,
+        cause: err?.cause,
+      });
+    }
     if (/aborted|aborterror/i.test(msg)) {
       throw new Error('A requisição demorou demais. Tente novamente.');
     }
-    if (/failed to fetch|networkerror|network error/i.test(msg)) {
+    if (/failed to fetch|networkerror|network error|load failed/i.test(msg)) {
       throw new Error(
-        'Não foi possível conectar ao servidor. Verifique se o backend está rodando (ex.: porta 3001) e se a URL da API está correta (NEXT_PUBLIC_API_URL).'
+        `Não foi possível conectar ao servidor. URL: ${API_URL} — Verifique NEXT_PUBLIC_API_URL e CORS no backend.`
       );
     }
     throw e;
   } finally {
     clearTimeout(timeout);
+  }
+
+  if (typeof window !== 'undefined' && !res.ok) {
+    const clone = res.clone();
+    clone.text().then((body) => {
+      console.error(`${LOG_PREFIX} resposta erro:`, { url, status: res.status, statusText: res.statusText, body: body.slice(0, 500) });
+    }).catch(() => {});
   }
 
   if (res.status === 401) {
@@ -59,7 +87,8 @@ export async function api<T>(
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(err.message || 'Erro na requisição');
+    const message = err?.message || `Erro ${res.status}: ${res.statusText}`;
+    throw new Error(message);
   }
 
   const text = await res.text();

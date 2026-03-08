@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { auth } from '@/lib/api';
+import { auth, getApiUrl } from '@/lib/api';
 import { setAuthCookie } from '@/lib/auth-cookie';
 
 function LoginForm() {
@@ -12,11 +12,18 @@ function LoginForm() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [apiUrl, setApiUrl] = useState<string>('');
+
+  useEffect(() => {
+    setApiUrl(getApiUrl());
+    console.log('[Login] NEXT_PUBLIC_API_URL (base):', getApiUrl());
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
     setLoading(true);
+    console.log('[Login] Tentando login:', { email, apiUrl: getApiUrl() });
     try {
       const { access_token, user } = await auth.login(email, password);
       localStorage.setItem('token', access_token);
@@ -26,7 +33,9 @@ function LoginForm() {
       const safeFrom = from && from.startsWith('/dashboard') ? from : '/dashboard';
       router.push(safeFrom);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Erro ao entrar');
+      const message = err instanceof Error ? err.message : 'Erro ao entrar';
+      console.error('[Login] Erro no login:', { err, message, apiUrl: getApiUrl() });
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -80,6 +89,11 @@ function LoginForm() {
               }}
             >
               {error}
+              {apiUrl && (
+                <div style={{ marginTop: 8, fontSize: 11, wordBreak: 'break-all', opacity: 0.9 }}>
+                  API: {apiUrl}
+                </div>
+              )}
             </div>
           )}
           <label style={{ display: 'block', marginBottom: 16 }}>
