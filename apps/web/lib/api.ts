@@ -2,7 +2,9 @@ import { clearAuthCookie } from '@/lib/auth-cookie';
 
 // Padrão: API em produção (Railway). Para dev local use NEXT_PUBLIC_API_URL=http://localhost:3001 no .env.local
 // Remove barra final para evitar URLs com // (ex.: base/ + /auth/login)
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://botao-do-panico-production.up.railway.app').replace(/\/$/, '');
+const API_URL_RAW = (process.env.NEXT_PUBLIC_API_URL || 'https://botao-do-panico-production.up.railway.app').replace(/\/$/, '');
+// No browser usamos /api (proxy do Next.js) para evitar CORS; no SSR usa a URL direta
+const API_URL = typeof window !== 'undefined' ? '/api' : API_URL_RAW;
 const DEFAULT_TIMEOUT_MS = 15000;
 
 const LOG_PREFIX = '[API]';
@@ -13,7 +15,7 @@ function getToken(): string | null {
 }
 
 export function getApiUrl(): string {
-  return API_URL;
+  return typeof window !== 'undefined' ? '/api' : API_URL_RAW;
 }
 
 export async function api<T>(
