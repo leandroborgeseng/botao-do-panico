@@ -90,7 +90,7 @@ function LoginForm() {
             >
               {error}
               <div style={{ marginTop: 8, fontSize: 11, wordBreak: 'break-all', opacity: 0.9 }}>
-                NEXT_PUBLIC_API_URL: {apiUrl || '(vazio)'}
+                <strong>NEXT_PUBLIC_API_URL (valor usado):</strong> {apiUrl || '(vazio — variável não definida no build)'}
               </div>
             </div>
           )}

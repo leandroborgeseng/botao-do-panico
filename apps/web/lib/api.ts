@@ -59,8 +59,11 @@ export async function api<T>(
       throw new Error('A requisição demorou demais. Tente novamente.');
     }
     if (/failed to fetch|networkerror|network error|load failed/i.test(msg)) {
+      const envBruto = process.env.NEXT_PUBLIC_API_URL;
+      const variavelSetada = envBruto !== undefined && envBruto !== '' ? 'sim' : 'não';
+      const valorVariavel = envBruto !== undefined && envBruto !== '' ? envBruto : '(vazia ou não definida no build)';
       throw new Error(
-        `Não foi possível conectar ao servidor. Verifique se o backend está rodando e se a URL da API está correta (NEXT_PUBLIC_API_URL). Valor usado: ${API_URL}`
+        `Não foi possível conectar ao servidor. NEXT_PUBLIC_API_URL setada no build: ${variavelSetada}. Conteúdo da variável: "${valorVariavel}". URL usada nas requisições: ${API_URL}`
       );
     }
     throw e;
