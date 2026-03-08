@@ -28,6 +28,7 @@ export default function DashboardLayout({
 
   function logout() {
     localStorage.removeItem('token');
+    localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
     clearAuthCookie();
     router.replace('/login');

@@ -14,7 +14,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { auth, setToken, panicEvents } from '@/lib/api';
-import { setStoredToken, setStoredUser } from '@/lib/storage';
+import { setStoredToken, setStoredRefreshToken, setStoredUser } from '@/lib/storage';
 import { registerPushTokenIfPossible } from '@/lib/push-notifications';
 import { ENABLE_REGISTRATION } from '@/lib/feature-flags';
 import { colors, spacing, radius, typography, cardStyle, inputStyle, primaryButtonStyle } from '@/lib/theme';
@@ -46,9 +46,10 @@ export default function LoginScreen() {
     setError('');
     setLoading(true);
     try {
-      const { access_token, user } = await auth.login(email.trim(), password);
+      const { access_token, refresh_token, user } = await auth.login(email.trim(), password);
       setToken(access_token);
       await setStoredToken(access_token);
+      if (refresh_token) await setStoredRefreshToken(refresh_token);
       await setStoredUser(JSON.stringify(user));
       registerPushTokenIfPossible().catch(() => {});
       // Após login, se houver alertas abertos que você recebeu como contato, abra diretamente a tela de alertas.

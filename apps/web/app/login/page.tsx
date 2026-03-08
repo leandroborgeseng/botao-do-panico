@@ -33,6 +33,7 @@ function LoginForm() {
       .catch(() => {
         clearAuthCookie();
         localStorage.removeItem('token');
+        localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
       });
   }, [router]);
@@ -45,8 +46,9 @@ function LoginForm() {
     setLoading(true);
     console.log('[Login] Tentando login:', { email, apiUrl: getApiUrl() });
     try {
-      const { access_token, user } = await auth.login(email, password);
+      const { access_token, refresh_token, user } = await auth.login(email, password);
       localStorage.setItem('token', access_token);
+      if (refresh_token) localStorage.setItem('refresh_token', refresh_token);
       localStorage.setItem('user', JSON.stringify(user));
       setAuthCookie();
       const from = searchParams.get('from');

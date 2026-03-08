@@ -7,6 +7,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { AllExceptionsFilter } from './common/http-exception.filter';
 import helmet from 'helmet';
 import { requestIdMiddleware } from './common/request-id.middleware';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import type { Request, Response, NextFunction } from 'express';
 
 const logger = new Logger('Bootstrap');
@@ -70,8 +71,6 @@ async function bootstrap() {
     if (parsed && parsed.length > 0) {
       corsOrigin = parsed;
     } else {
-      // Com credentials: true o navegador não aceita *. Refletir a origem da requisição permite qualquer frontend.
-      console.warn('[CORS] CORS_ORIGINS não definido; aceitando qualquer origem (recomendado: defina no Railway).');
       logger.warn('CORS_ORIGINS não definido; aceitando qualquer origem.');
       corsOrigin = (_origin: string, callback: (err: Error | null, allow?: boolean) => void) => callback(null, true);
     }
@@ -83,6 +82,15 @@ async function bootstrap() {
 
   const uploadsPath = join(__dirname, '..', 'uploads');
   app.useStaticAssets(uploadsPath, { prefix: '/uploads' });
+
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Botão do Pânico API')
+    .setDescription('API do painel e app Botão do Pânico. Autenticação via Bearer JWT.')
+    .setVersion('1.0')
+    .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'jwt')
+    .build();
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('docs', app, document);
 
   const port = parseInt(process.env.PORT ?? '3001', 10);
   const host = process.env.HOST ?? '0.0.0.0';

@@ -39,7 +39,7 @@ export default function ContactsScreen() {
   const [error, setError] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [cpfInput, setCpfInput] = useState('');
-  const [lookupUser, setLookupUser] = useState<{ id: string; name: string; cpf: string } | null>(null);
+  const [lookupResult, setLookupResult] = useState<{ exists: boolean; name?: string } | null>(null);
   const [lookupLoading, setLookupLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -93,7 +93,7 @@ export default function ContactsScreen() {
 
   function openAdd() {
     setCpfInput('');
-    setLookupUser(null);
+    setLookupResult(null);
     setError('');
     setModalVisible(true);
   }
@@ -114,12 +114,11 @@ export default function ContactsScreen() {
     }
     setLookupLoading(true);
     setError('');
-    setLookupUser(null);
+    setLookupResult(null);
     try {
       const data = await contactsApi.lookupByCpf(digits);
-      if (data) {
-        setLookupUser(data);
-      } else {
+      setLookupResult(data);
+      if (!data.exists) {
         setError('Nenhum usuário encontrado com este CPF. A pessoa precisa estar cadastrada no app.');
       }
     } catch (e: unknown) {
@@ -130,14 +129,14 @@ export default function ContactsScreen() {
   }
 
   async function handleAddContact() {
-    if (!lookupUser) return;
+    if (!lookupResult?.exists) return;
     const digits = stripDigits(cpfInput);
     setSaving(true);
     setError('');
     try {
       await contactsApi.create({
         cpf: digits,
-        name: lookupUser.name,
+        name: lookupResult.name ?? '',
       });
       setModalVisible(false);
       load();
@@ -307,7 +306,7 @@ export default function ContactsScreen() {
               maxLength={14}
             />
             {error ? <Text style={styles.error}>{error}</Text> : null}
-            {!lookupUser ? (
+            {!lookupResult?.exists ? (
               <TouchableOpacity
                 style={[styles.buttonSecondary, styles.buttonWithIcon]}
                 onPress={handleLookup}
@@ -321,8 +320,7 @@ export default function ContactsScreen() {
             ) : (
               <>
                 <View style={styles.foundBox}>
-                  <Text style={styles.foundName}>{lookupUser.name}</Text>
-                  <Text style={styles.foundEmail}>CPF: {lookupUser.cpf}</Text>
+                  <Text style={styles.foundName}>{lookupResult.name ?? 'Usuário encontrado'}</Text>
                 </View>
                 <TouchableOpacity
                   style={[styles.button, styles.buttonPrimary, styles.buttonWithIcon]}

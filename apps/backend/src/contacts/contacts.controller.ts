@@ -1,4 +1,5 @@
 import { BadRequestException, Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
 import { ContactsService } from './contacts.service';
@@ -6,8 +7,10 @@ import { CreateContactDto } from './dto/create-contact.dto';
 import { UpdateContactDto } from './dto/update-contact.dto';
 import { JwtUser } from '../auth/jwt-user.decorator';
 
+@ApiTags('contacts')
 @Controller('contacts')
 @UseGuards(AuthGuard('jwt'))
+@ApiBearerAuth('jwt')
 export class ContactsController {
   constructor(private contacts: ContactsService) {}
 

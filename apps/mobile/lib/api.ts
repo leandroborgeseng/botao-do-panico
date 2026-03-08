@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { clearStorage } from '@/lib/storage';
+import { clearStorage, getStoredRefreshToken, setStoredToken, setStoredRefreshToken } from '@/lib/storage';
 import { runUnauthorizedHandler } from '@/lib/unauthorized';
 
 const TOKEN_KEY = '@panico_token';
@@ -111,6 +111,35 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
     clearTimeout(timeout);
   }
 
+  if (res.status === 401 && path !== '/auth/refresh') {
+    const refreshToken = await getStoredRefreshToken();
+    if (refreshToken) {
+      try {
+        const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: refreshToken }),
+        });
+        const data = (await refreshRes.json().catch(() => ({}))) as { access_token?: string; refresh_token?: string };
+        if (refreshRes.ok && data.access_token) {
+          setToken(data.access_token);
+          await setStoredToken(data.access_token);
+          if (data.refresh_token) await setStoredRefreshToken(data.refresh_token);
+          const newHeaders = { ...headers, Authorization: `Bearer ${data.access_token}` };
+          const retryRes = await fetch(`${API_URL}${path}`, { ...options, headers: newHeaders });
+          if (retryRes.ok) {
+            const text = await retryRes.text();
+            return (text ? JSON.parse(text) : {}) as T;
+          }
+          if (retryRes.status === 401) {
+            setToken(null);
+            await clearStorage().catch(() => {});
+            runUnauthorizedHandler();
+            throw new Error('Sessão expirada. Faça login novamente.');
+          }
+        }
+      } catch (_) {}
+    }
   if (res.status === 401) {
     setToken(null);
     await clearStorage().catch(() => {});
@@ -129,7 +158,7 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
 
 export const auth = {
   login: (email: string, password: string) =>
-    api<{ access_token: string; user: User }>('/auth/login', {
+    api<{ access_token: string; refresh_token?: string; user: User }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     }),
@@ -168,8 +197,9 @@ export const contacts = {
         contactUser?: { id: string; name: string; email: string; cpf: string };
       }[]
     >('/contacts'),
+  /** Retorna apenas exists e name (para preencher formulário); não expõe id/cpf. */
   lookupByCpf: (cpf: string) =>
-    api<{ id: string; name: string; cpf: string } | null>(`/contacts/lookup-by-cpf/${encodeURIComponent(cpf)}`),
+    api<{ exists: boolean; name?: string }>(`/contacts/lookup-by-cpf/${encodeURIComponent(cpf)}`),
   create: (data: { cpf: string; name?: string; phone?: string; email?: string }) =>
     api<unknown>('/contacts', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: string, data: { name?: string; phone?: string; email?: string }) =>

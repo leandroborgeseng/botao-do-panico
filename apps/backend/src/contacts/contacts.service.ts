@@ -72,14 +72,15 @@ export class ContactsService {
     if (contact.userId !== userId) throw new ForbiddenException();
   }
 
-  async findByCpf(cpf: string) {
+  /** Retorna apenas se existe e o nome (para preencher formulário), sem expor id/cpf. */
+  async findByCpf(cpf: string): Promise<{ exists: boolean; name?: string }> {
     const cpfNorm = formatCpfForStorage(cpf);
     const user = await this.prisma.user.findUnique({
       where: { cpf: cpfNorm },
-      // Retorna o mínimo necessário para evitar vazamento de dados (ex.: email)
-      select: { id: true, name: true, cpf: true },
+      select: { name: true },
     });
-    return user ?? null;
+    if (!user) return { exists: false };
+    return { exists: true, name: user.name };
   }
 
   /**

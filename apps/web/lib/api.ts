@@ -9,13 +9,62 @@ const DEFAULT_TIMEOUT_MS = 15000;
 
 const LOG_PREFIX = '[API]';
 
+const REFRESH_TOKEN_KEY = 'refresh_token';
+
 function getToken(): string | null {
   if (typeof window === 'undefined') return null;
   return localStorage.getItem('token');
 }
 
+function getRefreshToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(REFRESH_TOKEN_KEY);
+}
+
+function setTokens(access: string, refresh?: string) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('token', access);
+  if (refresh != null) localStorage.setItem(REFRESH_TOKEN_KEY, refresh);
+}
+
+function clearTokens() {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem('token');
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem('user');
+}
+
 export function getApiUrl(): string {
   return typeof window !== 'undefined' ? '/api' : API_URL_RAW;
+}
+
+async function doRequest<T>(
+  path: string,
+  options: RequestInit,
+  token: string | null,
+  skipRefresh = false
+): Promise<Response> {
+  const url = `${API_URL}${path}`;
+  const headers: HeadersInit = {
+    ...(options.headers as Record<string, string>),
+  };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (!(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  } else {
+    delete headers['Content-Type'];
+  }
+  const controller = new AbortController();
+  const timeoutMs =
+    typeof (options as { timeoutMs?: unknown }).timeoutMs === 'number'
+      ? ((options as { timeoutMs?: number }).timeoutMs as number)
+      : DEFAULT_TIMEOUT_MS;
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, headers, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export async function api<T>(
@@ -27,49 +76,34 @@ export async function api<T>(
     console.log(`${LOG_PREFIX} ${(options.method || 'GET')} ${url}`);
   }
 
-  const token = getToken();
-  const headers: HeadersInit = {
-    ...(options.headers as Record<string, string>),
-  };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-  if (!(options.body instanceof FormData)) {
-    headers['Content-Type'] = 'application/json';
-  } else {
-    delete headers['Content-Type'];
-  }
+  let token = getToken();
+  let res = await doRequest(path, options, token, false);
 
-  let res: Response;
-  const controller = new AbortController();
-  const timeoutMs =
-    typeof (options as { timeoutMs?: unknown }).timeoutMs === 'number'
-      ? ((options as { timeoutMs?: number }).timeoutMs as number)
-      : DEFAULT_TIMEOUT_MS;
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    res = await fetch(url, { ...options, headers, signal: controller.signal });
-  } catch (e) {
-    const err = e as Error & { cause?: unknown };
-    const msg = err?.message ?? String(e);
-    if (typeof window !== 'undefined') {
-      console.error(`${LOG_PREFIX} fetch falhou:`, {
-        url,
-        method: options.method || 'GET',
-        errorName: err?.name,
-        errorMessage: msg,
-        cause: err?.cause,
-      });
+  if (res.status === 401 && typeof window !== 'undefined' && path !== '/auth/refresh') {
+    const refreshToken = getRefreshToken();
+    if (refreshToken) {
+      try {
+        const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: refreshToken }),
+        });
+        const data = (await refreshRes.json().catch(() => ({}))) as { access_token?: string; refresh_token?: string };
+        if (refreshRes.ok && data.access_token) {
+          setTokens(data.access_token, data.refresh_token);
+          token = data.access_token;
+          res = await doRequest(path, options, token, true);
+        }
+      } catch {
+        // refresh falhou
+      }
     }
-    if (/aborted|aborterror/i.test(msg)) {
-      throw new Error('A requisição demorou demais. Tente novamente.');
+    if (res.status === 401) {
+      clearTokens();
+      clearAuthCookie();
+      window.location.href = '/login';
+      throw new Error('Não autorizado');
     }
-    if (/failed to fetch|networkerror|network error|load failed/i.test(msg)) {
-      throw new Error(
-        `Não foi possível conectar ao servidor. URL: ${API_URL}. Verifique: (1) Backend está rodando? Abra ${API_URL} no navegador. (2) No Railway → Backend → Variables, defina CORS_ORIGINS com a URL do frontend (ex: https://botao-do-panico-production-b78c.up.railway.app) ou deixe vazio para aceitar qualquer origem.`
-      );
-    }
-    throw e;
-  } finally {
-    clearTimeout(timeout);
   }
 
   if (typeof window !== 'undefined' && !res.ok) {
@@ -80,9 +114,8 @@ export async function api<T>(
   }
 
   if (res.status === 401) {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
     if (typeof window !== 'undefined') {
+      clearTokens();
       clearAuthCookie();
       window.location.href = '/login';
     }
@@ -146,7 +179,7 @@ export interface PanicEvent {
 
 export const auth = {
   login: (email: string, password: string) =>
-    api<{ access_token: string; user: User }>('/auth/login', {
+    api<{ access_token: string; refresh_token: string; user: User }>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     }),
@@ -157,18 +190,17 @@ export const auth = {
     }),
 };
 
-/** Resposta da busca de usuário por CPF (para preencher contato) */
+/** Resposta da busca de usuário por CPF (para preencher contato; não expõe id/cpf) */
 export interface LookupByCpfResult {
-  id: string;
-  name: string;
-  cpf: string;
+  exists: boolean;
+  name?: string;
 }
 
 export const contacts = {
   list: () => api<EmergencyContact[]>('/contacts'),
-  /** Busca usuário por CPF (para preencher nome/e-mail ao adicionar contato) */
+  /** Busca se existe usuário com o CPF e retorna só o nome para preencher formulário */
   lookupByCpf: (cpf: string) =>
-    api<LookupByCpfResult | null>(`/contacts/lookup-by-cpf/${encodeURIComponent(cpf.replace(/\D/g, ''))}`),
+    api<LookupByCpfResult>(`/contacts/lookup-by-cpf/${encodeURIComponent(cpf.replace(/\D/g, ''))}`),
   create: (data: { cpf: string; name?: string; phone?: string; email?: string }) =>
     api<EmergencyContact>('/contacts', { method: 'POST', body: JSON.stringify(data) }),
   update: (id: string, data: Partial<Pick<EmergencyContact, 'name' | 'phone' | 'email'>>) =>

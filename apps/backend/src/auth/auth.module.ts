@@ -16,7 +16,7 @@ import { ContactsModule } from '../contacts/contacts.module';
       imports: [ConfigModule],
       useFactory: (config: ConfigService) => ({
         secret: config.get('JWT_SECRET') || 'dev-secret-change-in-production',
-        signOptions: { expiresIn: '7d' },
+        signOptions: { expiresIn: config.get('JWT_ACCESS_EXPIRES') || '15m' },
       }),
       inject: [ConfigService],
     }),

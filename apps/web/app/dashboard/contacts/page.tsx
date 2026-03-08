@@ -60,9 +60,9 @@ export default function ContactsPage() {
     setLookupError('');
     setLookupLoading(true);
     try {
-      const user = await contacts.lookupByCpf(digits);
-      if (user) {
-        setForm((f) => ({ ...f, name: user.name }));
+      const result = await contacts.lookupByCpf(digits);
+      if (result.exists && result.name) {
+        setForm((f) => ({ ...f, name: result.name! }));
       } else {
         setLookupError('Nenhum usuário encontrado com este CPF. A pessoa precisa estar cadastrada no app.');
       }

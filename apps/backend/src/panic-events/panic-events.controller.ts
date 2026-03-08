@@ -16,10 +16,13 @@ import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
 import { memoryStorage } from 'multer';
 import { PanicEventsService } from './panic-events.service';
 import { CreatePanicEventDto } from './dto/create-panic-event.dto';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtUser } from '../auth/jwt-user.decorator';
 
+@ApiTags('panic-events')
 @Controller('panic-events')
 @UseGuards(AuthGuard('jwt'))
+@ApiBearerAuth('jwt')
 export class PanicEventsController {
   constructor(private panicEvents: PanicEventsService) {}
 

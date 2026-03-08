@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const TOKEN_KEY = '@panico_token';
+const REFRESH_TOKEN_KEY = '@panico_refresh_token';
 const USER_KEY = '@panico_user';
 
 export async function getStoredToken(): Promise<string | null> {
@@ -10,6 +11,15 @@ export async function getStoredToken(): Promise<string | null> {
 export async function setStoredToken(token: string | null): Promise<void> {
   if (token) await AsyncStorage.setItem(TOKEN_KEY, token);
   else await AsyncStorage.removeItem(TOKEN_KEY);
+}
+
+export async function getStoredRefreshToken(): Promise<string | null> {
+  return AsyncStorage.getItem(REFRESH_TOKEN_KEY);
+}
+
+export async function setStoredRefreshToken(token: string | null): Promise<void> {
+  if (token) await AsyncStorage.setItem(REFRESH_TOKEN_KEY, token);
+  else await AsyncStorage.removeItem(REFRESH_TOKEN_KEY);
 }
 
 export async function getStoredUser(): Promise<string | null> {
@@ -22,5 +32,5 @@ export async function setStoredUser(userJson: string | null): Promise<void> {
 }
 
 export async function clearStorage(): Promise<void> {
-  await AsyncStorage.multiRemove([TOKEN_KEY, USER_KEY]);
+  await AsyncStorage.multiRemove([TOKEN_KEY, REFRESH_TOKEN_KEY, USER_KEY]);
 }

@@ -1,9 +1,13 @@
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { randomBytes, createHash } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { ContactsService } from '../contacts/contacts.service';
 import { formatCpfForStorage } from '../common/validators/cpf.validator';
+
+const REFRESH_TOKEN_BYTES = 32;
+const REFRESH_EXPIRES_DAYS = 7;
 
 export interface JwtPayload {
   sub: string;
@@ -36,12 +40,15 @@ export class AuthService {
   async login(email: string, password: string) {
     const user = await this.validateUser(email, password);
     if (!user) throw new UnauthorizedException('Credenciais inválidas');
+    const access_token = this.jwt.sign({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    } as JwtPayload);
+    const refresh_token = await this.createRefreshToken(user.id);
     return {
-      access_token: this.jwt.sign({
-        sub: user.id,
-        email: user.email,
-        role: user.role,
-      } as JwtPayload),
+      access_token,
+      refresh_token,
       user: {
         id: user.id,
         name: user.name,
@@ -58,6 +65,46 @@ export class AuthService {
         state: user.state,
       },
     };
+  }
+
+  private hashRefreshToken(token: string): string {
+    return createHash('sha256').update(token).digest('hex');
+  }
+
+  private async createRefreshToken(userId: string): Promise<string> {
+    const token = randomBytes(REFRESH_TOKEN_BYTES).toString('hex');
+    const tokenHash = this.hashRefreshToken(token);
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + REFRESH_EXPIRES_DAYS);
+    await this.prisma.refreshToken.create({
+      data: { userId, tokenHash, expiresAt },
+    });
+    return token;
+  }
+
+  async refresh(refreshToken: string): Promise<{ access_token: string; refresh_token: string }> {
+    if (!refreshToken?.trim()) throw new UnauthorizedException('Refresh token é obrigatório.');
+    const tokenHash = this.hashRefreshToken(refreshToken.trim());
+    const record = await this.prisma.refreshToken.findUnique({
+      where: { tokenHash },
+      include: { user: { select: { id: true, email: true, role: true, active: true } } },
+    });
+    if (!record || record.expiresAt < new Date()) {
+      if (record) await this.prisma.refreshToken.delete({ where: { id: record.id } }).catch(() => {});
+      throw new UnauthorizedException('Refresh token inválido ou expirado.');
+    }
+    if (!record.user.active) {
+      await this.prisma.refreshToken.delete({ where: { id: record.id } });
+      throw new UnauthorizedException('Usuário inativo.');
+    }
+    await this.prisma.refreshToken.delete({ where: { id: record.id } });
+    const newRefreshToken = await this.createRefreshToken(record.user.id);
+    const access_token = this.jwt.sign({
+      sub: record.user.id,
+      email: record.user.email,
+      role: record.user.role,
+    } as JwtPayload);
+    return { access_token, refresh_token: newRefreshToken };
   }
 
   async getMe(userId: string) {

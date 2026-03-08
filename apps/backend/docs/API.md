@@ -2,13 +2,21 @@
 
 Base URL: `http://localhost:3001` (ou `NEXT_PUBLIC_API_URL` / `EXPO_PUBLIC_API_URL` em produção).
 
+**Documentação interativa (Swagger):** `GET /docs` — use para testar os endpoints com Bearer JWT.
+
 ## Autenticação
 
 Rotas protegidas exigem o header: `Authorization: Bearer <token>`.
 
 - **POST /auth/login** (público)  
   Body: `{ "email": string, "password": string }`  
-  Retorno: `{ "access_token": string, "user": User }`
+  Retorno: `{ "access_token": string, "refresh_token": string, "user": User }`  
+  O access_token expira em 15 min (configurável com JWT_ACCESS_EXPIRES). Use o refresh_token para renovar.
+
+- **POST /auth/refresh** (público, rate limit 10/min)  
+  Body: `{ "refresh_token": string }`  
+  Retorno: `{ "access_token": string, "refresh_token": string }`  
+  Emite novos tokens e invalida o refresh_token anterior.
 
 - **POST /auth/register** (público)  
   Body: `{ "name", "email", "cpf", "password", "supportOnly?", "contactCpfs?", "cep?", "street?", "number?", "complement?", "neighborhood?", "city?", "state?" }`  
@@ -31,8 +39,8 @@ Rotas protegidas exigem o header: `Authorization: Bearer <token>`.
 - **GET /contacts** (protegido)  
   Retorno: lista de contatos do usuário.
 
-- **GET /contacts/lookup-by-cpf/:cpf** (protegido)  
-  Retorno: `{ id, name, email, cpf } | null`
+- **GET /contacts/lookup-by-cpf/:cpf** (protegido, rate limit 8/min)  
+  Retorno: `{ "exists": boolean, "name"?: string }` — apenas o mínimo para preencher formulário (não expõe id/cpf).
 
 - **POST /contacts** (protegido)  
   Body: `{ "cpf", "name"?, "phone"?, "email"? }`  
