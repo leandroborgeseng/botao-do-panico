@@ -24,8 +24,8 @@ module.exports = {
       supportsTablet: true,
       // Identificador seguindo o padrão desejado
       bundleIdentifier: 'br.gov.sp.franca.botaodopanico',
-      // Build number iOS
-      buildNumber: '1.0.0',
+      // Build number iOS (inteiro; incrementar a cada envio à App Store)
+      buildNumber: '1',
       infoPlist: {
         NSLocationWhenInUseUsageDescription:
           'O app precisa da sua localização para enviar em caso de emergência ao acionar o botão de pânico.',
@@ -39,9 +39,9 @@ module.exports = {
         foregroundImage: './assets/adaptive-icon.png',
         backgroundColor: '#ffffff',
       },
-      // Package Android conforme especificação
-      package: 'br.gov.sp.franca.botaodopanico',
-      versionCode: 1,
+      // Package Android (deve coincidir com o app na Play Console)
+      package: 'com.botaodopanico.app',
+      versionCode: 2,
       permissions: ['ACCESS_FINE_LOCATION', 'RECORD_AUDIO', 'POST_NOTIFICATIONS'],
     },
     plugins: [

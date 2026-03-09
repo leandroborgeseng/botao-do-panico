@@ -140,6 +140,7 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
         }
       } catch (_) {}
     }
+  }
   if (res.status === 401) {
     setToken(null);
     await clearStorage().catch(() => {});

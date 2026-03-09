@@ -68,7 +68,20 @@ export default function PoliticaDeUsoPage() {
       </section>
 
       <section style={{ marginBottom: 28 }}>
-        <h2 style={{ fontSize: 20, marginBottom: 12 }}>5. Descadastramento e exclusão de dados</h2>
+        <h2 style={{ fontSize: 20, marginBottom: 12 }}>5. Padrões contra abuso e exploração sexual infantil (CSAE)</h2>
+        <p style={{ marginBottom: 12 }}>
+          O aplicativo está comprometido com a proteção de crianças e adolescentes e adere aos
+          padrões publicados externamente contra abuso e exploração sexual infantil (CSAE).
+        </p>
+        <p>
+          <Link href="/padroes-csae" style={{ color: 'var(--color-link)' }}>
+            Acessar padrões CSAE e links externos →
+          </Link>
+        </p>
+      </section>
+
+      <section style={{ marginBottom: 28 }}>
+        <h2 style={{ fontSize: 20, marginBottom: 12 }}>6. Descadastramento e exclusão de dados</h2>
         <p style={{ marginBottom: 12 }}>
           O usuário tem direito a solicitar o descadastramento total da plataforma e a exclusão
           dos seus dados pessoais. Para isso, deve acessar a página &quot;Solicitar descadastramento&quot;,
@@ -84,7 +97,7 @@ export default function PoliticaDeUsoPage() {
       </section>
 
       <section style={{ marginBottom: 28 }}>
-        <h2 style={{ fontSize: 20, marginBottom: 12 }}>6. Limitação de responsabilidade</h2>
+        <h2 style={{ fontSize: 20, marginBottom: 12 }}>7. Limitação de responsabilidade</h2>
         <p style={{ marginBottom: 12 }}>
           O Botão do Pânico é um meio de comunicação de emergência e não substitui o acionamento
           de órgãos de segurança (Polícia, Bombeiros, SAMU) quando necessário. A disponibilidade
@@ -94,7 +107,7 @@ export default function PoliticaDeUsoPage() {
       </section>
 
       <section style={{ marginBottom: 28 }}>
-        <h2 style={{ fontSize: 20, marginBottom: 12 }}>7. Alterações</h2>
+        <h2 style={{ fontSize: 20, marginBottom: 12 }}>8. Alterações</h2>
         <p style={{ marginBottom: 12 }}>
           Esta política pode ser atualizada periodicamente. Alterações relevantes serão comunicadas
           por meio do aplicativo ou do e-mail cadastrado. O uso continuado após as alterações
@@ -103,7 +116,7 @@ export default function PoliticaDeUsoPage() {
       </section>
 
       <section style={{ marginBottom: 28 }}>
-        <h2 style={{ fontSize: 20, marginBottom: 12 }}>8. Contato</h2>
+        <h2 style={{ fontSize: 20, marginBottom: 12 }}>9. Contato</h2>
         <p style={{ marginBottom: 12 }}>
           Para dúvidas sobre esta política, descadastramento ou tratamento de dados, entre em
           contato pelo canal disponibilizado no aplicativo ou no site da instituição responsável
@@ -114,6 +127,8 @@ export default function PoliticaDeUsoPage() {
       <hr style={{ border: 'none', borderTop: '1px solid var(--color-border)', margin: '32px 0' }} />
       <p style={{ fontSize: 13, color: 'var(--color-gray)' }}>
         <Link href="/" style={{ color: 'var(--color-link)' }}>Voltar ao início</Link>
+        {' · '}
+        <Link href="/padroes-csae" style={{ color: 'var(--color-link)' }}>Padrões CSAE</Link>
         {' · '}
         <Link href="/descadastramento" style={{ color: 'var(--color-link)' }}>Solicitar descadastramento</Link>
       </p>
