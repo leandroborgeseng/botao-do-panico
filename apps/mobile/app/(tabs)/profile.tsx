@@ -10,11 +10,12 @@ import {
   ActivityIndicator,
   Keyboard,
   Switch,
+  Linking,
 } from 'react-native';
 import { auth } from '@/lib/api';
 import { fetchAddressByCep } from '@/lib/viacep';
 import { colors, spacing, radius, typography, cardStyle, inputStyle, primaryButtonStyle } from '@/lib/theme';
-import { getDisguiseMode, setDisguiseMode } from '@/lib/settings';
+import { getDisguiseMode, setDisguiseMode, PRIVACY_POLICY_URL, UNSUBSCRIBE_URL, CSAE_STANDARDS_URL } from '@/lib/settings';
 
 function stripDigits(s: string) {
   return s.replace(/\D/g, '');
@@ -169,23 +170,39 @@ export default function ProfileScreen() {
         <Text style={styles.label}>Nome</Text>
         <TextInput
           style={styles.input}
-        placeholder="Nome"
-        placeholderTextColor={colors.gray}
-        value={firstName}
-        onChangeText={setFirstName}
-      />
-      <Text style={styles.label}>Sobrenome</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Sobrenome"
-        placeholderTextColor={colors.gray}
-        value={lastName}
-        onChangeText={setLastName}
-      />
-      <Text style={styles.label}>E-mail</Text>
-      <Text style={styles.value}>{user.email}</Text>
-      <Text style={styles.label}>CPF</Text>
+          placeholder="Nome"
+          placeholderTextColor={colors.gray}
+          value={firstName}
+          onChangeText={setFirstName}
+        />
+        <Text style={styles.label}>Sobrenome</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Sobrenome"
+          placeholderTextColor={colors.gray}
+          value={lastName}
+          onChangeText={setLastName}
+        />
+        <Text style={styles.label}>E-mail</Text>
+        <Text style={styles.value}>{user.email}</Text>
+        <Text style={styles.label}>CPF</Text>
         <Text style={styles.value}>{user.cpf ? `***.***.***-${user.cpf.slice(-2)}` : '-'}</Text>
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.section}>Sobre e privacidade</Text>
+        <Text style={styles.hint}>
+          Veja mais detalhes sobre como seus dados são tratados, como solicitar exclusão e os padrões de segurança adotados.
+        </Text>
+        <TouchableOpacity style={styles.linkButton} onPress={() => Linking.openURL(PRIVACY_POLICY_URL)}>
+          <Text style={styles.linkText}>Política de uso e privacidade</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.linkButton} onPress={() => Linking.openURL(UNSUBSCRIBE_URL)}>
+          <Text style={styles.linkText}>Descadastramento / exclusão de dados</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.linkButton} onPress={() => Linking.openURL(CSAE_STANDARDS_URL)}>
+          <Text style={styles.linkText}>Padrões contra abuso e exploração infantil (CSAE)</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.card}>
@@ -279,4 +296,6 @@ const styles = StyleSheet.create({
   button: { ...primaryButtonStyle, marginTop: spacing.sm },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { ...typography.button, color: colors.onPrimary },
+  linkButton: { marginTop: spacing.md },
+  linkText: { ...typography.body, color: colors.primary, fontWeight: '600' },
 });

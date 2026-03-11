@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "expo start",
     "android": "expo run:android",
-    "ios": "expo run:ios"
+    "ios": "expo run:ios",
+    "generate-icons": "node scripts/generate-icons.js"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -25,6 +26,8 @@
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
+    "@react-native-community/cli": "^20.1.2",
+    "sharp": "^0.33.5",
     "@types/react": "~19.1.10",
     "@types/react-native": "^0.72.8",
     "babel-plugin-module-resolver": "^5.0.2",

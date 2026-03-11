@@ -4,6 +4,12 @@ const DISGUISE_MODE_KEY = '@panico_disguise_mode';
 type Listener = (enabled: boolean) => void;
 const listeners = new Set<Listener>();
 
+const WEB_BASE_URL = process.env.EXPO_PUBLIC_WEB_URL || 'https://seu-dominio-web-aqui';
+
+export const PRIVACY_POLICY_URL = `${WEB_BASE_URL}/politica-de-uso`;
+export const UNSUBSCRIBE_URL = `${WEB_BASE_URL}/descadastramento`;
+export const CSAE_STANDARDS_URL = `${WEB_BASE_URL}/padroes-csae`;
+
 export async function getDisguiseMode(): Promise<boolean> {
   try {
     const value = await AsyncStorage.getItem(DISGUISE_MODE_KEY);
@@ -18,7 +24,9 @@ export async function setDisguiseMode(enabled: boolean): Promise<void> {
     await AsyncStorage.setItem(DISGUISE_MODE_KEY, enabled ? '1' : '0');
   } catch {}
   listeners.forEach((fn) => {
-    try { fn(enabled); } catch {}
+    try {
+      fn(enabled);
+    } catch {}
   });
 }
 
