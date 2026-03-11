@@ -442,7 +442,7 @@ export default function UsersPage() {
                   <button
                     type="button"
                     onClick={() => openEdit(u)}
-                    style={{ padding: '6px 12px', background: 'var(--color-success)', border: 'none', borderRadius: 6, color: 'white', fontSize: 13 }}
+                    style={{ padding: '6px 12px', background: '#ec4899', border: 'none', borderRadius: 6, color: 'white', fontSize: 13 }}
                   >
                     Editar
                   </button>
