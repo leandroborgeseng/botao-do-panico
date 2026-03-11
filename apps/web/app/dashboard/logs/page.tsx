@@ -24,9 +24,58 @@ export default function LogsPage() {
     return <p style={{ color: 'var(--color-text)' }}>Carregando logs...</p>;
   }
 
+  function handleExportTxt() {
+    if (!events.length) return;
+    const lines: string[] = [];
+    lines.push('Logs de eventos de pânico');
+    lines.push(`Exportado em: ${new Date().toLocaleString('pt-BR')}`);
+    lines.push('='.repeat(80));
+    for (const ev of events) {
+      const date = new Date(ev.capturedAt).toLocaleString('pt-BR');
+      const address =
+        ev.addressCity || ev.addressNeighborhood || ev.addressStreet
+          ? [ev.addressStreet, ev.addressNeighborhood, ev.addressCity].filter(Boolean).join(', ')
+          : `${ev.latitude.toFixed(5)}, ${ev.longitude.toFixed(5)}`;
+      lines.push(`ID: ${ev.id}`);
+      lines.push(`Data/Hora: ${date}`);
+      lines.push(`Usuário: ${ev.user?.name ?? '-'}`);
+      lines.push(`E-mail: ${ev.user?.email ?? '-'}`);
+      lines.push(`Local: ${address}`);
+      lines.push(`Status: ${ev.status === 'OPEN' ? 'Aberto' : 'Fechado'}`);
+      lines.push('-'.repeat(80));
+    }
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `logs-panico-${new Date().toISOString().slice(0, 10)}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div>
-      <h1 style={{ marginBottom: 8, color: 'var(--color-primary)' }}>Logs / Auditoria</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, marginBottom: 8, flexWrap: 'wrap' }}>
+        <h1 style={{ color: 'var(--color-primary)' }}>Logs / Auditoria</h1>
+        <button
+          type="button"
+          onClick={handleExportTxt}
+          disabled={!events.length}
+          style={{
+            padding: '8px 14px',
+            borderRadius: 999,
+            border: '1px solid var(--color-border)',
+            background: events.length ? 'var(--color-primary)' : 'rgba(0,0,0,0.03)',
+            color: events.length ? '#ffffff' : 'var(--color-gray)',
+            fontSize: 13,
+            cursor: events.length ? 'pointer' : 'not-allowed',
+          }}
+        >
+          Exportar TXT
+        </button>
+      </div>
       <p style={{ color: 'var(--color-gray)', marginBottom: 24, fontSize: 14 }}>
         Visão consolidada dos eventos de pânico para auditoria e relatórios. Use os links para abrir o detalhe completo do evento.
       </p>
